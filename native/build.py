@@ -45,10 +45,18 @@ def prepare_numpy_recipe(package, source, work, chaquopy):
         raise ValueError("NumPy recipe does not match sources.json")
     metadata["source"] = {"path": str(source)}
     metadata["build"]["number"] = 2
+    metadata["requirements"]["host"].insert(0, "python")
     recipe = work / "recipes/numpy"
     shutil.copytree(upstream / "patches", recipe / "patches", dirs_exist_ok=True)
     (recipe / "meta.yaml").write_text(yaml.safe_dump(metadata))
     return recipe
+
+
+def download_host_wheels(abi, pypi):
+    for name in ["libffi", "openblas", "libgfortran"]:
+        package = "chaquopy-" + name
+        filename = abi[name]
+        download(f"https://chaquo.com/pypi-13.1/{package}/{filename}", pypi / "dist" / package / filename, abi[name + "Sha256"])
 
 
 def prepare_recipe(name, package, work, chaquopy):
@@ -123,8 +131,7 @@ def main():
     target_name = f"target-{lock['target']}-{args.abi}.zip"
     target = chaquopy / "maven/com/chaquo/python/target" / lock["target"] / target_name
     download(f"https://chaquo.com/maven-central/com/chaquo/python/target/{lock['target']}/{target_name}", target, abi["targetSha256"])
-    libffi = pypi / "dist/chaquopy-libffi" / abi["libffi"]
-    download(f"https://chaquo.com/pypi-13.1/chaquopy-libffi/{abi['libffi']}", libffi, abi["libffiSha256"])
+    download_host_wheels(abi, pypi)
     output = DIRECTORY / "build/output"
     output.mkdir(parents=True, exist_ok=True)
     results = []

@@ -45,12 +45,20 @@
     "arm64-v8a": {
       "targetSha256": "0598a69c6d0cb24b70770168487af9965814ec93a2ac752a019c6a154110e4b9",
       "libffi": "chaquopy_libffi-3.3-3-py3-none-android_24_arm64_v8a.whl",
-      "libffiSha256": "86873c2f8e5e43b07b72233bf35e06ad8dae41ba98e0556202d61d00d7ad952f"
+      "libffiSha256": "86873c2f8e5e43b07b72233bf35e06ad8dae41ba98e0556202d61d00d7ad952f",
+      "openblas": "chaquopy_openblas-0.2.20-5-py3-none-android_21_arm64_v8a.whl",
+      "openblasSha256": "1e8e67a4f9e2fcde384890678bafbf7ffefe7b2cb4887e5c2996ba7607f4324c",
+      "libgfortran": "chaquopy_libgfortran-4.9-0-py3-none-android_21_arm64_v8a.whl",
+      "libgfortranSha256": "0b4caed1147f2a19707d4ba730afea57f7b8f2d8c046d8a48cf49377741c4604"
     },
     "armeabi-v7a": {
       "targetSha256": "01d3df9268f4821024bcb49a49a4e4507c0e155e933cb8ccda2b6399e8a2cdd8",
       "libffi": "chaquopy_libffi-3.3-2-py3-none-android_16_armeabi_v7a.whl",
-      "libffiSha256": "8e9c18da8173747ffd7a26df408b4137e9756f856a247c617fa43270f86baef8"
+      "libffiSha256": "8e9c18da8173747ffd7a26df408b4137e9756f856a247c617fa43270f86baef8",
+      "openblas": "chaquopy_openblas-0.2.20-5-py3-none-android_16_armeabi_v7a.whl",
+      "openblasSha256": "1bc04851423a6e15d87d37432a83a197dbe49ec9b748c629fce9f59407b9c1b3",
+      "libgfortran": "chaquopy_libgfortran-4.9-0-py3-none-android_16_armeabi_v7a.whl",
+      "libgfortranSha256": "f290faf492675ee0a4c35f83261d0652de5c1c7bf9ad55122db0e70cf913e758"
     }
   },
   "buildInputs": {
