@@ -9,8 +9,8 @@ from elftools.elf.elffile import ELFFile
 
 
 MACHINES = {"arm64-v8a": "EM_AARCH64", "armeabi-v7a": "EM_ARM"}
-DEPENDENCIES = {"libpython3.10.so", "libcrypto_chaquopy.so", "libssl_chaquopy.so", "libcrypto_python.so", "libssl_python.so", "libsqlite3_python.so", "libffi.so", "libxml2.so", "libxslt.so", "libexslt.so", "libz.so", "libc.so", "libm.so", "libdl.so", "liblog.so", "libandroid.so", "libc++_shared.so"}
-NATIVE_COUNTS = {"cryptography": 1, "cffi": 1, "chaquopy_libxml2": 1, "chaquopy_libxslt": 2, "pycryptodome": 40, "lxml": 6}
+DEPENDENCIES = {"libpython3.10.so", "libcrypto_chaquopy.so", "libssl_chaquopy.so", "libcrypto_python.so", "libssl_python.so", "libsqlite3_python.so", "libffi.so", "libxml2.so", "libxslt.so", "libexslt.so", "libopenblas.so", "libz.so", "libc.so", "libm.so", "libdl.so", "liblog.so", "libandroid.so", "libc++_shared.so"}
+NATIVE_COUNTS = {"cryptography": 1, "cffi": 1, "chaquopy_libxml2": 1, "chaquopy_libxslt": 2, "pycryptodome": 40, "lxml": 6, "numpy": 19}
 
 
 def verify_library(name, data, abi):

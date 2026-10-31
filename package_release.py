@@ -24,6 +24,13 @@ def copy_asset(source, output, expected):
     shutil.copyfile(source, output / source.name)
 
 
+def verify_wheel_set(wheels, inputs, abi):
+    expected = {(name.replace("-", "_"), package["version"]) for name, package in inputs["packages"].items()}
+    actual = {tuple(wheel["file"].split("-")[:2]) for wheel in wheels}
+    if len(wheels) != len(expected) or actual != expected:
+        raise ValueError(f"Incomplete or unexpected wheels: {abi}")
+
+
 def verify_runtime(path, report, abi):
     with ZipFile(path) as archive:
         if archive.testzip() is not None or set(archive.namelist()) != {library["path"] for library in report["libraries"]}:
@@ -42,8 +49,7 @@ def package(artifacts, output, producer):
     for abi in MACHINES:
         wheel_dir = artifacts / ("wheels-" + abi)
         report = read_report(wheel_dir / f"provenance-{abi}.json", abi, wheel_inputs)
-        if len(report["wheels"]) != 6:
-            raise ValueError(f"Incomplete wheels: {abi}")
+        verify_wheel_set(report["wheels"], wheel_inputs, abi)
         for wheel in report["wheels"]:
             path = wheel_dir / wheel["file"]
             if path.name != wheel["file"] or verify_wheel(path, abi) != wheel:

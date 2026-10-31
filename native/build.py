@@ -38,11 +38,26 @@ def extract_source(archive, destination):
         source.extractall(destination)
 
 
+def prepare_numpy_recipe(package, source, work, chaquopy):
+    upstream = chaquopy / "server/pypi/packages/numpy"
+    metadata = yaml.safe_load((upstream / "meta.yaml").read_text())
+    if metadata["package"] != {"name": "numpy", "version": package["version"]}:
+        raise ValueError("NumPy recipe does not match sources.json")
+    metadata["source"] = {"path": str(source)}
+    metadata["build"]["number"] = 2
+    recipe = work / "recipes/numpy"
+    shutil.copytree(upstream / "patches", recipe / "patches", dirs_exist_ok=True)
+    (recipe / "meta.yaml").write_text(yaml.safe_dump(metadata))
+    return recipe
+
+
 def prepare_recipe(name, package, work, chaquopy):
     archive = work / "downloads" / package["url"].rsplit("/", 1)[1]
     download(package["url"], archive, package["sha256"])
     extract_source(archive, work / "sources")
     source = work / "sources" / package.get("directory", f"{name}-{package['version']}")
+    if name == "numpy":
+        return prepare_numpy_recipe(package, source, work, chaquopy)
     if name in ["chaquopy-libxml2", "chaquopy-libxslt"]:
         run("patch", "-p1", "-i", str(DIRECTORY / (name.removeprefix("chaquopy-") + ".patch")), cwd=source)
     requirements = {"host": []}
@@ -113,7 +128,7 @@ def main():
     output = DIRECTORY / "build/output"
     output.mkdir(parents=True, exist_ok=True)
     results = []
-    for name in ["chaquopy-libxml2", "chaquopy-libxslt", "cffi", "cryptography", "pycryptodome", "lxml"]:
+    for name in ["chaquopy-libxml2", "chaquopy-libxslt", "cffi", "cryptography", "pycryptodome", "lxml", "numpy"]:
         recipe = prepare_recipe(name, lock["packages"][name], work, chaquopy)
         run("python", str(pypi / "build-wheel.py"), "--python", "3.10", "--api-level", "24", "--abi", args.abi, str(recipe), cwd=pypi)
         wheels = list((pypi / "dist" / name).glob(f"*android_24_{args.abi.replace('-', '_')}.whl"))
