@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import re
 from zipfile import ZipFile
 
 from elftools.elf.elffile import ELFFile
@@ -10,7 +11,11 @@ from elftools.elf.elffile import ELFFile
 
 MACHINES = {"arm64-v8a": "EM_AARCH64", "armeabi-v7a": "EM_ARM"}
 DEPENDENCIES = {"libpython3.10.so", "libcrypto_chaquopy.so", "libssl_chaquopy.so", "libcrypto_python.so", "libssl_python.so", "libsqlite3_python.so", "libffi.so", "libxml2.so", "libxslt.so", "libexslt.so", "libopenblas.so", "libz.so", "libc.so", "libm.so", "libdl.so", "liblog.so", "libandroid.so", "libc++_shared.so"}
-NATIVE_COUNTS = {"cryptography": 1, "cffi": 1, "chaquopy_libxml2": 1, "chaquopy_libxslt": 2, "pycryptodome": 40, "lxml": 6, "numpy": 19}
+NATIVE_COUNTS = {"cryptography": 1, "cffi": 1, "chaquopy_libxml2": 1, "chaquopy_libxslt": 2, "pycryptodome": 40, "lxml": 6, "numpy": 19, "chaquopy_libgfortran": 1}
+
+
+def packages_for_abi(inputs, abi):
+    return {name: package for name, package in inputs["packages"].items() if "abis" not in package or abi in package["abis"]}
 
 
 def verify_library(name, data, abi):
@@ -34,7 +39,7 @@ def verify_wheel(path, abi):
     with ZipFile(path) as wheel:
         if wheel.testzip() is not None:
             raise ValueError(f"Invalid wheel: {path}")
-        libraries = [verify_library(name, wheel.read(name), abi) for name in wheel.namelist() if name.endswith(".so")]
+        libraries = [verify_library(name, wheel.read(name), abi) for name in wheel.namelist() if re.search(r"\.so(?:\.\d+)*$", name)]
     if len(libraries) != NATIVE_COUNTS[path.name.split("-", 1)[0]]:
         raise ValueError(f"Unexpected native library count: {path}")
     return {"file": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "size": path.stat().st_size, "libraries": libraries}

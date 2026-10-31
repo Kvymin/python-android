@@ -7,10 +7,11 @@ import subprocess
 import tarfile
 import urllib.request
 from pathlib import Path
+from zipfile import ZipFile
 
 import yaml
 
-from verify import verify_wheel
+from verify import packages_for_abi, verify_wheel
 
 
 DIRECTORY = Path(__file__).resolve().parent
@@ -57,6 +58,34 @@ def download_host_wheels(abi, pypi):
         package = "chaquopy-" + name
         filename = abi[name]
         download(f"https://chaquo.com/pypi-13.1/{package}/{filename}", pypi / "dist" / package / filename, abi[name + "Sha256"])
+
+
+def prepare_gfortran_recipe(package, abi, work, pypi):
+    toolchain = abi["gfortranToolchain"]
+    archive = work / "downloads" / toolchain["file"]
+    download(toolchain["url"], archive, toolchain["sha256"])
+    source = work / "sources" / ("chaquopy-libgfortran-" + package["version"])
+    source.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(archive) as entries:
+        for name in ["libgfortran.a", "libgcc.a", "COPYING3", "COPYING.RUNTIME"]:
+            member = entries.getmember(toolchain["members"][name])
+            if not member.isfile():
+                raise ValueError("Invalid Fortran archive member: " + member.name)
+            (source / name).write_bytes(entries.extractfile(member).read())
+    with ZipFile(pypi / "dist/chaquopy-libgfortran" / abi["libgfortran"]) as reference:
+        names = [name for name in reference.namelist() if name.endswith("/libgfortran.so.3")]
+        if len(names) != 1:
+            raise ValueError("Expected one reference Fortran library")
+        (source / "reference.so.3").write_bytes(reference.read(names[0]))
+    recipe = work / "recipes/chaquopy-libgfortran"
+    recipe.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(DIRECTORY / "gfortran.py", recipe / "gfortran.py")
+    script = recipe / "build.sh"
+    script.write_text('#!/bin/bash\nset -eu\npython "$RECIPE_DIR/gfortran.py"\n')
+    script.chmod(0o755)
+    metadata = {"package": {"name": "chaquopy-libgfortran", "version": package["version"]}, "source": {"path": str(source)}, "build": {"number": 4}, "requirements": {"build": ["pyelftools 0.29"]}, "about": {"license_file": "COPYING.RUNTIME"}}
+    (recipe / "meta.yaml").write_text(yaml.safe_dump(metadata))
+    return recipe
 
 
 def prepare_recipe(name, package, work, chaquopy):
@@ -135,8 +164,14 @@ def main():
     output = DIRECTORY / "build/output"
     output.mkdir(parents=True, exist_ok=True)
     results = []
-    for name in ["chaquopy-libxml2", "chaquopy-libxslt", "cffi", "cryptography", "pycryptodome", "lxml", "numpy"]:
-        recipe = prepare_recipe(name, lock["packages"][name], work, chaquopy)
+    packages = packages_for_abi(lock, args.abi)
+    for name in ["chaquopy-libgfortran", "chaquopy-libxml2", "chaquopy-libxslt", "cffi", "cryptography", "pycryptodome", "lxml", "numpy"]:
+        if name not in packages:
+            continue
+        if name == "chaquopy-libgfortran":
+            recipe = prepare_gfortran_recipe(packages[name], abi, work, pypi)
+        else:
+            recipe = prepare_recipe(name, packages[name], work, chaquopy)
         run("python", str(pypi / "build-wheel.py"), "--python", "3.10", "--api-level", "24", "--abi", args.abi, str(recipe), cwd=pypi)
         wheels = list((pypi / "dist" / name).glob(f"*android_24_{args.abi.replace('-', '_')}.whl"))
         if len(wheels) != 1:

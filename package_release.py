@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from zipfile import ZipFile
 
-from native.verify import MACHINES, verify_library, verify_wheel
+from native.verify import MACHINES, packages_for_abi, verify_library, verify_wheel
 
 
 ROOT = Path(__file__).resolve().parent
@@ -25,7 +25,7 @@ def copy_asset(source, output, expected):
 
 
 def verify_wheel_set(wheels, inputs, abi):
-    expected = {(name.replace("-", "_"), package["version"]) for name, package in inputs["packages"].items()}
+    expected = {(name.replace("-", "_"), package["version"]) for name, package in packages_for_abi(inputs, abi).items()}
     actual = {tuple(wheel["file"].split("-")[:2]) for wheel in wheels}
     if len(wheels) != len(expected) or actual != expected:
         raise ValueError(f"Incomplete or unexpected wheels: {abi}")

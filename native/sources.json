@@ -39,6 +39,12 @@
       "version": "1.26.2",
       "url": "https://files.pythonhosted.org/packages/dd/2b/205ddff2314d4eea852e31d53b8e55eb3f32b292efc3dd86bd827ab9019d/numpy-1.26.2.tar.gz",
       "sha256": "f65738447676ab5777f11e6bbbdb8ce11b785e105f690bc45966574816b6d3ea"
+    },
+    "chaquopy-libgfortran": {
+      "version": "4.9",
+      "abis": [
+        "arm64-v8a"
+      ]
     }
   },
   "abis": {
@@ -49,7 +55,18 @@
       "openblas": "chaquopy_openblas-0.2.20-5-py3-none-android_21_arm64_v8a.whl",
       "openblasSha256": "1e8e67a4f9e2fcde384890678bafbf7ffefe7b2cb4887e5c2996ba7607f4324c",
       "libgfortran": "chaquopy_libgfortran-4.9-0-py3-none-android_21_arm64_v8a.whl",
-      "libgfortranSha256": "0b4caed1147f2a19707d4ba730afea57f7b8f2d8c046d8a48cf49377741c4604"
+      "libgfortranSha256": "0b4caed1147f2a19707d4ba730afea57f7b8f2d8c046d8a48cf49377741c4604",
+      "gfortranToolchain": {
+        "file": "gcc-arm64-linux-x86_64.tar.bz2",
+        "url": "https://github.com/mzakharo/android-gfortran/releases/download/r21e/gcc-arm64-linux-x86_64.tar.bz2",
+        "sha256": "dbdec8193ed74dbea7f0167a643a6dc4d7c00df0647e4089667c052865079841",
+        "members": {
+          "libgfortran.a": "aarch64-linux-android-4.9/aarch64-linux-android/lib64/libgfortran.a",
+          "libgcc.a": "aarch64-linux-android-4.9/lib/gcc/aarch64-linux-android/4.9.x/libgcc.a",
+          "COPYING3": "aarch64-linux-android-4.9/COPYING3",
+          "COPYING.RUNTIME": "aarch64-linux-android-4.9/COPYING.RUNTIME"
+        }
+      }
     },
     "armeabi-v7a": {
       "targetSha256": "01d3df9268f4821024bcb49a49a4e4507c0e155e933cb8ccda2b6399e8a2cdd8",
